@@ -110,7 +110,7 @@ proc iterate_over_conditions {} {
     
     set failures [$failure_matrix rows]
     if { [$failure_matrix cells] > 0 } {
-        puts "\033\[01;33m****************************"
+        puts "\033\[01;31m****************************"
         puts "FAILED TIMING - $failures failures"
         puts "**************************** \033\[;0m\n"
     }
