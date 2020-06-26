@@ -41,6 +41,8 @@ package require struct::matrix
 package require report
 package require csv
 
+set failure_matrix [::struct::matrix]
+
 
 proc timequest_init {project_name} {
  project_open $project_name
@@ -50,8 +52,9 @@ proc generate_netlist {} {
     create_timing_netlist
 }
 
-# 
-proc evaluate_operating_condition {condition analyses results} {
+
+proc evaluate_operating_condition {condition analyses} {
+    global failure_matrix
     set operating_conditions_display_name \
         [get_operating_conditions_info -display_name $condition]
     puts $operating_conditions_display_name
@@ -74,7 +77,7 @@ proc evaluate_operating_condition {condition analyses results} {
                         break
                     }
                 }
-                $results add row \
+                $failure_matrix add row \
 			        [list $condition $slack $endpoint_tns $clock_name \
 					 $condition $analysis_type $fmax_matching_freq]
 
@@ -85,30 +88,86 @@ proc evaluate_operating_condition {condition analyses results} {
         }
     }
 
-    return $results
 
 }
 
 
 proc iterate_over_conditions {} {
+    global failure_matrix
     set all_operating_conditions_col [get_available_operating_conditions]
     set analysis_list [list "setup" "hold" "recovery" "removal"]
 
     #set results [list]
-
-    set results [::struct::matrix]
-    $results add columns 7
+    #global results
+    $failure_matrix add columns 7
 
     foreach_in_collection operating_condition_obj $all_operating_conditions_col {
         set_operating_conditions $operating_condition_obj
         update_timing_netlist
 
-        evaluate_operating_condition $operating_condition_obj $analysis_list $results
+        evaluate_operating_condition $operating_condition_obj $analysis_list
     }
     
-    ::csv::writematrix $results stderr
+    set failures [$failure_matrix rows]
+    if { [$failure_matrix cells] > 0 } {
+        puts "\033\[01;33m****************************"
+        puts "FAILED TIMING - $failures failures"
+        puts "**************************** \033\[;0m\n"
+    }
+    ::csv::writematrix $failure_matrix stderr
+
+    return $failure_matrix
+}
+
+proc write_jmeter {  } {
+    global failure_matrix
+    set csv_matrix [::struct::matrix]
+    $csv_matrix add columns 23
+
+
+    set timeStamp [clock seconds]
+    set elapsed 1
+    set testlabel "Test"
+    set responseCode 200
+    set responseMessage "OK"
+    set threadName "bob"
+    set dataType "text"
+    set success "true"
+    set failureMessage ""
+    set bytes 0
+    set sentBytes 0
+    set grpThreads 1
+    set allThreads 1
+    set URL "http://example.com/"
+    set Filename "index.html"
+    set latency 123
+    set connect 456
+    set httpencoding ""
+    set SampleCount 1
+    set ErrorCount clockFreq
+    set Hostname "localhost"
+    set IdleTime 0
+    set Variables ""
+
+    set failures [$failure_matrix rows]
+    for {set failure_idx 0} {$failure_idx < $failures} {incr failure_idx} {
+        set failure [$failure_matrix get row $failure_idx]
+        set success "false"
+        set testlabel [lindex $failure 3]
+        set elapsed [lindex $failure 6]
+        $csv_matrix add row \
+            [list $timeStamp $elapsed $testlabel $responseCode $responseMessage $threadName \
+		        $dataType $success $failureMessage $bytes $sentBytes $grpThreads $allThreads \
+		        $URL $Filename $latency $connect $httpencoding $SampleCount $ErrorCount $Hostname $IdleTime \
+                $Variables ]
+
+    }
+
+    ::csv::writematrix $csv_matrix stderr
+
 }
 
 
 iterate_over_conditions
+write_jmeter
 
