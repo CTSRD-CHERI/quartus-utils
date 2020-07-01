@@ -112,6 +112,14 @@ proc iterate_over_conditions {} {
     if { [$failure_matrix cells] > 0 } {
         puts "\033\[01;31m****************************"
         puts "FAILED TIMING - $failures failures"
+	for {set failure_idx 0} {$failure_idx < $failures} {incr failure_idx} {
+		set failure [$failure_matrix get row $failure_idx]
+		set clock_name [lindex $failure 3]
+		set slack [lindex $failure 1]
+		set fmax [lindex $failure 6]
+		set condition [lindex $failure 0]
+		puts "Failed: clock $clock_name condition $condition Fmax $fmax slack $slack"
+	}
         puts "**************************** \033\[;0m\n"
     }
     ::csv::writematrix $failure_matrix stderr
