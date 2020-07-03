@@ -153,16 +153,24 @@ proc write_jmeter {  } {
     set sentBytes 0
     set grpThreads 1
     set allThreads 1
-    set URL "http://example.com/"
+    set URL "http://quartus-synth/"
     set Filename "index.html"
     set latency 123
     set connect 456
     set httpencoding ""
     set SampleCount 1
-    set ErrorCount clockFreq
+    set ErrorCount $clockFreq
     set Hostname "localhost"
     set IdleTime 0
     set Variables ""
+
+    # header row
+    $csv_matrix add row \
+	[list "timeStamp" "elapsed" "label" "responseCode" "responseMessage" "threadName" \
+		"dataType" "success" "failureMessage" "bytes" "sentBytes" "grpThreads" "allThreads" \
+		"URL" "Filename" "latency" "connect" "encoding" "SampleCount" "ErrorCount" "Hostname" "IdleTime" \
+		"Variables"
+	]
 
     # add a dummy row so the report isn't empty if we pass
     set success "true"
