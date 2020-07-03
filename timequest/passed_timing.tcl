@@ -119,6 +119,13 @@ proc iterate_over_conditions {} {
     return $failure_matrix
 }
 
+
+# Output timing requests in a format suitable for reading by Jenkins' Jmeter
+# plugin.  Since Jenkins doesn't have a great deal of support for measuring
+# performance and pass/fail based on that, we pretend that we're a web app,
+# the 'time elapsed' is the clock frequency, and we output a Jmeter CSV file
+# listing all the failures.  Definitely needs improvement!
+
 proc write_jmeter {  } {
     global failure_matrix
     set csv_matrix [::struct::matrix]
@@ -163,7 +170,9 @@ proc write_jmeter {  } {
 
     }
 
-    ::csv::writematrix $csv_matrix stderr
+    set fh [open "jmeter.csv" w]
+    ::csv::writematrix $csv_matrix $fh
+    close $fh
 
 }
 
