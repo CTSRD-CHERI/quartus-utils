@@ -164,6 +164,18 @@ proc write_jmeter {  } {
     set IdleTime 0
     set Variables ""
 
+    # add a dummy row so the report isn't empty if we pass
+    set success "true"
+    set testlabel "dummy"
+    set elapsed "0"
+    $csv_matrix add row \
+        [list $timeStamp $elapsed $testlabel $responseCode $responseMessage $threadName \
+	        $dataType $success $failureMessage $bytes $sentBytes $grpThreads $allThreads \
+	        $URL $Filename $latency $connect $httpencoding $SampleCount $ErrorCount $Hostname $IdleTime \
+                $Variables ]
+
+
+
     set failures [$failure_matrix rows]
     for {set failure_idx 0} {$failure_idx < $failures} {incr failure_idx} {
         set failure [$failure_matrix get row $failure_idx]
