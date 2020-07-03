@@ -159,7 +159,7 @@ proc write_jmeter {  } {
     set connect 456
     set httpencoding ""
     set SampleCount 1
-    set ErrorCount $clockFreq
+    set ErrorCount 0
     set Hostname "localhost"
     set IdleTime 0
     set Variables ""
@@ -190,6 +190,7 @@ proc write_jmeter {  } {
         set success "false"
         set testlabel [lindex $failure 3]
         set elapsed [lindex $failure 6]
+        set ErrorCount [expr {int(double($elapsed) * 1000.0)} ]
         $csv_matrix add row \
             [list $timeStamp $elapsed $testlabel $responseCode $responseMessage $threadName \
 		        $dataType $success $failureMessage $bytes $sentBytes $grpThreads $allThreads \
